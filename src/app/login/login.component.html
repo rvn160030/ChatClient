@@ -1,22 +1,30 @@
-<ng-container>
-  <div class="container">
-    <label for="uname"><b>Username</b></label>
-    <input type="text" placeholder="Enter Username" name="uname" required>
+<!DOCTYPE html>
+<html>
+<script type="text/javascript">
+  window.global = window;
+</script>
 
-    <label for="psw"><b>Password</b></label>
-    <input type="password" placeholder="Enter Password" name="psw" required>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
 
-    <a href="/conversation">
-    <button type="submit">
-        Login
-      </button><router-outlet></router-outlet></a>
-    <label>
-      <input type="checkbox" checked="checked" name="remember"> Remember me
-    </label>
+<body>
+  <div class="box">
+    <div class="container">
+      <input type="text" placeholder="Public key" required>
+      <input type="password" placeholder="Private key" required>
+      <input type="text" placeholder="Modulus" required>
+    </div>
+
+    <div class="container">
+      <a href="/conversation">
+        <button type="submit">
+          Login
+        </button>
+        <router-outlet></router-outlet>
+      </a>
+    </div>
   </div>
+</body>
 
-  <div class="container" style="background-color:#f1f1f1">
-    <button type="button" class="cancelbtn">Cancel</button>
-    <span class="psw">Forgot <a href="#">password?</a></span>
-  </div>
-</ng-container>
+</html>
