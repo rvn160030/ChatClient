@@ -31,13 +31,13 @@ button:hover {
 .box {
     padding-left: 10em;
     padding-right: 10em;
-    padding-top: 10em;
+    padding-top: 9em;
     padding-bottom: 29em;
 }
 
 body {
     margin: 0 !important;
-    background-color: #585757 !important;
+    background-color: #d55500 !important;
     width: 100% !important;
     position: fixed;
     top: 0;
