@@ -8,15 +8,15 @@
 <body>
   <div class="box">
     <div class="container">
-      <input type="text" placeholder="Name" required>
-      <input type="text" placeholder="Public key" required>
-      <input type="password" placeholder="Private key" required>
-      <input type="text" placeholder="Modulus" required>
+      <input name="Name" type="text" placeholder="Name" required>
+      <input name="PublicKey" type="text" placeholder="Public key" required>
+      <input name="PrivateKey" type="password" placeholder="Private key" required>
+      <input name="Modulus" type="text" placeholder="Modulus" required>
     </div>
 
     <div class="container">
       <a href="/conversation">
-        <button type="submit">
+        <button type="submit" onclick=onClick()>
           Login
         </button>
         <router-outlet></router-outlet>

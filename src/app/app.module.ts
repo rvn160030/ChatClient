@@ -4,12 +4,14 @@ import { AppRoutingModule } from './app.routing.module';
 import { AppComponent } from './app.component';
 import { ConversationComponent } from './conversation/conversation.component';
 import { LoginComponent } from './login/login.component';
+import { RoomComponent } from './room/room.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     ConversationComponent,
-    LoginComponent
+    LoginComponent,
+    RoomComponent
   ],
   imports: [
     BrowserModule, AppRoutingModule
