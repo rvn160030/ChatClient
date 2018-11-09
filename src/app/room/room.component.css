@@ -1,0 +1,50 @@
+form {
+    border: 3px solid #f1f1f1;
+}
+
+input[type=text],
+input[type=password] {
+    width: 100%;
+    padding: .75em 1.25em;
+    margin: .5em 0;
+    border: .063em solid #cecece;
+    box-sizing: border-box;
+}
+
+button {
+    background-color: #008b58;
+    color: white;
+    padding: 1em;
+    margin: .5em;
+    border: none;
+}
+
+button:hover {
+    opacity: .8;
+    cursor: pointer;
+}
+
+.container {
+    padding: 11em;
+}
+
+ul {
+    width: 1em;
+}
+
+.box {
+    padding-left: 10em;
+    padding-right: 10em;
+    padding-top: 9em;
+    padding-bottom: 36em;
+    text-align: center;
+}
+
+body {
+    margin: 0 !important;
+    background-color: #d55500 !important;
+    width: 100% !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
