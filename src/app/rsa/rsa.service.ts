@@ -84,4 +84,77 @@ private _modulus = 221;
 
     return buff.toString();
   }
+
+
+  /*Used before sending the symmetric key
+  Variables:
+  - symKey the key to be encrypted
+  -pubKey and
+  -modulus: These are the public key of the person that you're sending the session key to.
+  */
+  enecryptSymKey(symKey : number, pubKey : number, modulus : number) : Buffer{
+
+    //Split the symKey into blocks of two digits
+    // ***We convert every two digits into the buffer instead of one for better encryption***
+    //Any larger than two and weird stuff happens when generating the buffer
+    let keyString: string = symKey.toString();
+
+    let chunks = [];
+    for (let i = 0, charsLength = keyString.length; i < charsLength; i += 2) {
+      chunks.push(keyString.substring(i, i + 2));
+    }
+    const buff : Buffer = Buffer.from(chunks);
+
+    //encrypt
+    for (let i=0; i<buff.length; i++){
+      let tempNum=buff[i].valueOf();
+      let originalNum = tempNum;
+
+      //Taking buff[i]=(buff[i])^pubKey % modulus recursively rather than using the power operator
+      //Doing it as written above results in loss of precision issues during division.
+      for(let i=0; i<pubKey.valueOf()-1; i++){
+        if ((tempNum*buff[i])%modulus!=0)
+          tempNum=(tempNum*originalNum)%modulus;
+
+        else
+          tempNum=(tempNum*originalNum);
+      }
+      buff[i]= tempNum;
+    }
+
+
+    return buff;
+  }
+
+  decryptSymKey(symKey : Buffer): number{
+    const buff = symKey;
+
+    //decrypt
+    for (let i=0; i<buff.length; i++){
+      let tempNum=buff[i].valueOf();
+      let originalNum = tempNum;
+
+      //Taking buff[i]=(buff[i])^privateKey % modulus recursively rather than using the power operator
+      //Doing it as written above results in loss of precision issues during division.
+      for(let i=0; i<this.privateKey.valueOf()-1; i++){
+        if ((tempNum*buff[i])%this._modulus!=0)
+          tempNum=(tempNum*originalNum)%this._modulus;
+
+        else
+          tempNum=(tempNum*originalNum);
+      }
+      buff[i]= tempNum;
+    }
+
+    //Convert the buffer back into the corresponding number
+    //First make it a contiguous string...
+    let s: string =""
+    for (let i=0; i<buff.length; i++){
+    s+=buff[i].toString();
+  }
+  //Then use the plus like so to magically make it a number!
+  return +s;
+}
+
+
 }
