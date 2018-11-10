@@ -14,13 +14,13 @@ export class LoginComponent implements OnInit {
   ngOnInit() {
     console.log(this.router.url, 'Current URL');
   }
-  onClick() {
-    const person = {
-      name: (<HTMLInputElement>document.getElementById('Name')).value,
-      publicKey: (<HTMLInputElement>document.getElementById('PublicKey')).value,
-      privateKey: (<HTMLInputElement>document.getElementById('PrivateKey')).value,
-      modulus: (<HTMLInputElement>document.getElementById('Modulus')).value,
-    };
-    return person;
-  }
+  // onClick() {
+  //   const person = {
+  //     name: (<HTMLInputElement>document.getElementById('Name')).value,
+  //     publicKey: (<HTMLInputElement>document.getElementById('PublicKey')).value,
+  //     privateKey: (<HTMLInputElement>document.getElementById('PrivateKey')).value,
+  //     modulus: (<HTMLInputElement>document.getElementById('Modulus')).value,
+  //   };
+  //   return person;
+  // }
 }

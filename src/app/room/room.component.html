@@ -8,12 +8,47 @@
 <body>
   <div class="box">
     <div class="container">
-      <button onclick=onClick()>
-        Create Room
-      </button>
-      <button onclick=onClick()>
-        Join Room
-      </button>
+      <div id="buttons">
+        <button>
+          Create Room
+        </button>
+        <button>
+          Join Room
+        </button>
+      </div>
+      <div class="checklist" id="checklist">
+        <ul>
+          <label>
+            <input type="checkbox" id='Adrian'> Adrian
+          </label>
+        </ul>
+
+        <ul>
+          <label>
+            <input type="checkbox" id='Melvin'> Melvin
+          </label>
+        </ul>
+
+        <ul>
+          <label>
+            <input type="checkbox" id='Joseph'> Joseph
+          </label>
+        </ul>
+
+        <ul>
+          <label>
+            <input type="checkbox" id='Anmol'> Anmol
+          </label>
+        </ul>
+
+        <a href="/conversation">
+          <button type="submit" onclick=onClick() id ="submit">
+            Submit
+          </button>
+          <router-outlet></router-outlet>
+        </a>
+      </div>
+
     </div>
   </div>
 </body>
