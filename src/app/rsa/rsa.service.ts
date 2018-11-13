@@ -11,36 +11,21 @@ import {Buffer} from 'buffer';
  * Thus, the object remains as a Buffer until it has been unencrypted and unsigned at the other end.
  */
 export class RsaService {
-//For the moment, these keys are hard-coded.
-  //Support for user-provided keys will be added at a later date.
-  //TODO: This^.
-private _publicKey: Number = 31;
-private privateKey : Number = 31;
-private _modulus = 221;
+//Improvement for the future: Use something other than the number class to allow for larger values.
+  //Also, refactoring to abstract out the reused code would really improve maintainability.
+public publicKey: Number;
+public privateKey : Number;
+public modulus:number;
 
-  //private _modulus : number = Number(window.atob("lAA0cW2UH9VQDuNipXCF8TK2mMABRLY8XLJ35+ZucLsqUmDiDD1cRwis3UF2WJIm+Slc8DSvsy++l+En7VLtGvSQFFzRlnOPIE5zCWV0Ka5dG/tO+Dle6y7kHDHelcVNzkjldm9VJD6uZmUYqnbM8PoMrckzdOqN0t+F7sCFxjk="))
-  //private privateKey : number = Number(window.atob(""))
-
-  get modulus(): number {
-    return this._modulus;
+  constructor() {
   }
-  get publicKey(): Number {
-    return this._publicKey;
-  }
-
-
-  //TODO; Either add support for provided keys, or implement non-"textbook RSA"
-  constructor(/*s : String*/) {
-    /* Test code ignore for now.
-    console.log("Test");
-    let str =this.sign("");
-    console.log(str.toString());
-    console.log(this.decrypt(str));*/
-  }
-
 
   sign(message : string) : Buffer{
+    let byteSpan = 4;
     const buff : Buffer = Buffer.from(message);
+    //We'll be needing a larger buffer to return because of RSA with large moduli
+    //For more info, see signSymKey();
+    const toReturn : Buffer= Buffer.alloc(buff.length*byteSpan)
 
     //Iterate through each character (int) in the buffer
     for (let i=0; i<buff.length; i++){
@@ -50,23 +35,25 @@ private _modulus = 221;
       //Taking buff[i]=(buff[i])^privateKey % modulus recursively rather than using the power operator
       //Doing it as written above results in loss of precision issues during division.
       for(let i=0; i<this.privateKey.valueOf()-1; i++){
-        if ((tempNum*buff[i])%this._modulus!=0)
-          tempNum=(tempNum*originalNum)%this._modulus;
+        if ((tempNum*buff[i])%this.modulus!=0)
+          tempNum=(tempNum*originalNum)%this.modulus;
 
         else
           tempNum=(tempNum*originalNum);
       }
-      buff[i]= tempNum;
+      toReturn.writeUInt32BE(tempNum,i*byteSpan);
     }
-    return buff;
+    return toReturn;
   }
 
 
   decrypt(message : Buffer, key : number, modulus : number) : string{
+    let byteSpan = 4;
     const buff : Buffer = message;
+    let toReturn=Buffer.alloc(buff.length/byteSpan)
 
-    for (let i=0; i<buff.length; i++){
-      let tempNum=buff[i].valueOf();
+    for (let i=0; i<buff.length/byteSpan; i++){
+      let tempNum=buff.readUInt32BE(i*byteSpan);
       let originalNum = tempNum;
 
       //Taking buff[i]=(buff[i])^privateKey % modulus recursively rather than using the power operator
@@ -78,13 +65,11 @@ private _modulus = 221;
         else
           tempNum=(tempNum*originalNum);
       }
-      buff[i]= tempNum;
+      toReturn[i]= tempNum;
     }
 
-
-    return buff.toString();
+    return toReturn.toString();
   }
-
 
   /*Used before sending the symmetric key
   Variables:
@@ -92,69 +77,77 @@ private _modulus = 221;
   -pubKey and
   -modulus: These are the public key of the person that you're sending the session key to.
   */
-  enecryptSymKey(symKey : number, pubKey : number, modulus : number) : Buffer{
+  enecryptSymKey(symKey : Uint32Array, pubKey : number, modulus : number) : Buffer{
 
-    //Split the symKey into blocks of two digits
-    // ***We convert every two digits into the buffer instead of one for better encryption***
-    //Any larger than two and weird stuff happens when generating the buffer
-    let keyString: string = symKey.toString();
-
-    let chunks = [];
-    for (let i = 0, charsLength = keyString.length; i < charsLength; i += 2) {
-      chunks.push(keyString.substring(i, i + 2));
+    let byteSpan = 4; //due to the fact that the ints are 32-bit and thus take 4 bytes
+    //Convert the key into an array buffer
+    let arrBuffer = new ArrayBuffer(byteSpan*symKey.length);
+    let view=new DataView(arrBuffer);
+    for (let i=0; i<symKey.length; i++){
+      view.setUint32(byteSpan*i, symKey[i]);
     }
-    const buff : Buffer = Buffer.from(chunks);
+
+    /*Buffer is larger (not symKey.length*byteSpan) because we'll actually be storing
+    16 bit values in it. The modulus can be so large that the encrypted value exceeds what
+    we would store in 8 bits.
+    */
+    const buff : Buffer = Buffer.alloc(symKey.length*byteSpan*byteSpan);
 
     //encrypt
-    for (let i=0; i<buff.length; i++){
-      let tempNum=buff[i].valueOf();
+    let offset=0;
+    for(let i=0; i<symKey.length*byteSpan; i++){
+      let tempNum=view.getUint8(i);
       let originalNum = tempNum;
+
 
       //Taking buff[i]=(buff[i])^pubKey % modulus recursively rather than using the power operator
       //Doing it as written above results in loss of precision issues during division.
-      for(let i=0; i<pubKey.valueOf()-1; i++){
-        if ((tempNum*buff[i])%modulus!=0)
+      for(let j=0; j<pubKey-1; j++){
+        if ((tempNum*originalNum)%modulus!=0)
           tempNum=(tempNum*originalNum)%modulus;
 
         else
           tempNum=(tempNum*originalNum);
       }
-      buff[i]= tempNum;
+      offset=buff.writeUInt32BE(tempNum, offset);
     }
-
 
     return buff;
   }
 
-  decryptSymKey(symKey : Buffer): number{
-    const buff = symKey;
+  decryptSymKey(encryptedKey : Buffer): Uint32Array {
+
+    let byteSpan = 4;//Bad name, due to the fact that the ints are 32-bit and thus take 4 bytes
+    let numBytes = 16;
+    let arrBuffer = new ArrayBuffer(numBytes*byteSpan);
+    let view = new DataView(arrBuffer);
 
     //decrypt
-    for (let i=0; i<buff.length; i++){
-      let tempNum=buff[i].valueOf();
+    for (let i = 0; i < encryptedKey.length/byteSpan; i++) {
+      let tempNum = encryptedKey.readUInt32BE(i*4);
       let originalNum = tempNum;
 
       //Taking buff[i]=(buff[i])^privateKey % modulus recursively rather than using the power operator
       //Doing it as written above results in loss of precision issues during division.
-      for(let i=0; i<this.privateKey.valueOf()-1; i++){
-        if ((tempNum*buff[i])%this._modulus!=0)
-          tempNum=(tempNum*originalNum)%this._modulus;
+      for (let j = 0; j < this.privateKey.valueOf() - 1; j++) {
+        if ((tempNum * originalNum) % this.modulus != 0)
+          tempNum = (tempNum * originalNum) % this.modulus;
 
         else
-          tempNum=(tempNum*originalNum);
+          tempNum = (tempNum * originalNum);
       }
-      buff[i]= tempNum;
+
+      //Place it in the array buffer
+      view.setUint8(i, tempNum)
+
+    }
+    //Convert the array buffer back into a Uint32Array
+    let toReturn: number[] = [];
+    for (let i = 0; i < 8; i++) {
+      toReturn.push(view.getInt32(i * 4))
     }
 
-    //Convert the buffer back into the corresponding number
-    //First make it a contiguous string...
-    let s: string =""
-    for (let i=0; i<buff.length; i++){
-    s+=buff[i].toString();
+    return new Uint32Array(toReturn);
   }
-  //Then use the plus like so to magically make it a number!
-  return +s;
-}
-
 
 }
